@@ -159,6 +159,11 @@ void AosCore::Init(const std::string& configFile)
     err = mSMClient.Init(*config, mIAMClientPublic, mIAMClientPublic, mResourceManager, mNetworkManager, mLogProvider,
         mResourceMonitor, mLauncher);
     AOS_ERROR_CHECK_AND_THROW("can't initialize SM client", err);
+
+    // Initialize logprovider
+
+    err = mLogProvider.Init(config->mLogging, mDatabase);
+    AOS_ERROR_CHECK_AND_THROW("can't initialize logprovider", err);
 }
 
 void AosCore::Start()
@@ -183,6 +188,9 @@ void AosCore::Start()
 
     err = mServiceManager.Start();
     AOS_ERROR_CHECK_AND_THROW("can't start service manager", err);
+
+    err = mLogProvider.Start();
+    AOS_ERROR_CHECK_AND_THROW("can't start logprovider", err);
 }
 
 void AosCore::Stop()
@@ -207,6 +215,9 @@ void AosCore::Stop()
 
     err = mServiceManager.Stop();
     AOS_ERROR_CHECK_AND_THROW("can't stop service manager", err);
+
+    err = mLogProvider.Stop();
+    AOS_ERROR_CHECK_AND_THROW("can't stop logprovider", err);
 }
 
 void AosCore::SetLogBackend(common::logger::Logger::Backend backend)
