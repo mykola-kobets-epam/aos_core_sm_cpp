@@ -4,13 +4,13 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-set(TARGET runner_test)
+set(TARGET integration_test)
 
 # ######################################################################################################################
 # Sources
 # ######################################################################################################################
 
-set(SOURCES runner_test.cpp)
+set(SOURCES integr_test.cpp)
 
 # ######################################################################################################################
 # Target
@@ -24,4 +24,4 @@ gtest_discover_tests(${TARGET})
 # Libraries
 # ######################################################################################################################
 
-target_link_libraries(${TARGET} aostestutils runner GTest::gmock_main)
+target_link_libraries(${TARGET} aostestutils logprovider runner GTest::gmock_main)

@@ -11,9 +11,9 @@
 #include <aos/test/log.hpp>
 #include <logprovider/logprovider.hpp>
 
-#include "InstanceIDProviderMock.hpp"
-#include "JournalMock.hpp"
-#include "LogReceiverMock.hpp"
+#include "instanceidprovidermock.hpp"
+#include "journalmock.hpp"
+#include "logreceivermock.hpp"
 
 using namespace testing;
 using namespace aos;
@@ -40,7 +40,7 @@ public:
     {
         aos::test::InitLog();
 
-        auto config = config::LoggingConfig {1024, 10};
+        auto config = config::LoggingConfig {200, 10};
 
         mLogProvider.Init(config, mInstanceIDProvider);
         mLogProvider.Start();

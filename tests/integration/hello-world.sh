@@ -11,5 +11,7 @@ upper_bound=$1
 # Dynamically generate the range
 for i in $(eval echo {1..$upper_bound}); do
     echo "Hello World ($i/$upper_bound)"
-    sleep 3
+    sleep 1
 done
+
+kill -SIGSEGV $$
