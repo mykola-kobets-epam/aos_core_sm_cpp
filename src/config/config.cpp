@@ -78,7 +78,7 @@ void ParseMonitoringConfig(const common::utils::CaseInsensitiveObjectWrapper& ob
 void ParseLoggingConfig(const common::utils::CaseInsensitiveObjectWrapper& object, LoggingConfig& config)
 {
     config.mMaxPartSize  = object.GetValue<uint64_t>("maxPartSize", cloudprotocol::cLogContentLen);
-    config.mMaxPartCount = object.GetValue<uint64_t>("maxPartCount", 80);
+    config.mMaxPartCount = object.GetValue<uint64_t>("maxPartCount", 30);
 }
 
 void ParseJournalAlertsConfig(const common::utils::CaseInsensitiveObjectWrapper& object, JournalAlertsConfig& config)

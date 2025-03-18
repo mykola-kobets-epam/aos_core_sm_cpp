@@ -24,7 +24,7 @@ Archivator::Archivator(LogObserverItf& logReceiver, const config::LoggingConfig&
 Error Archivator::AddLog(const std::string& message)
 {
     if (mPartCount >= mConfig.mMaxPartCount) {
-        return AOS_ERROR_WRAP(ErrorEnum::eInvalidArgument);
+        return Error(AOS_ERROR_WRAP(ErrorEnum::eInvalidArgument), "max journal parts count reached");
     }
 
     if (mPartSize + message.size() > mConfig.mMaxPartSize) {
