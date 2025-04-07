@@ -271,6 +271,8 @@ RetWithError<StaticString<cFilePathLen>> ImageHandler::InstallService(const Stri
 
     if (err = ValidateService(installDir.c_str(), *manifest); !err.IsNone()) {
         result.mError = AOS_ERROR_WRAP(err);
+
+        LOG_INF() << "Service validation failed(): path=" << installDir.c_str() << ", err=" << err;
         return result;
     }
 
@@ -288,9 +290,12 @@ RetWithError<StaticString<cFilePathLen>> ImageHandler::InstallService(const Stri
 
 Error ImageHandler::ValidateService(const String& path) const
 {
+    LOG_INF() << "Validate service: path=" << path;
+
     auto imageManifest = std::make_unique<oci::ImageManifest>();
     auto manifestPath  = std::filesystem::path(path.CStr()) / cServiceManifestFile;
 
+    LOG_INF() << "Load image manifest: path=" << manifestPath.c_str();
     if (auto err = mOCISpec->LoadImageManifest(manifestPath.c_str(), *imageManifest); !err.IsNone()) {
         return AOS_ERROR_WRAP(Error(err, "failed to load image manifest"));
     }
@@ -340,24 +345,31 @@ Error ImageHandler::ValidateServiceConfig(const String& path, const String& dige
 
 Error ImageHandler::ValidateService(const String& path, const oci::ImageManifest& manifest) const
 {
+    LOG_INF() << "ValidateService ValidateDigest(path, manifest.mConfig.mDigest)";
+
     if (auto err = ValidateDigest(path, manifest.mConfig.mDigest); !err.IsNone()) {
         return AOS_ERROR_WRAP(err);
     }
 
     if (manifest.mAosService.HasValue()) {
+        LOG_INF() << "ValidateService ValidateDigest(path, manifest.mAosService->mDigest);";
+
         if (auto err = ValidateDigest(path, manifest.mAosService->mDigest); !err.IsNone()) {
             return AOS_ERROR_WRAP(err);
         }
 
+        LOG_INF() << "ValidateService ValidateServiceConfig(path, manifest.mAosService->mDigest);";
         if (auto err = ValidateServiceConfig(path, manifest.mAosService->mDigest); !err.IsNone()) {
             return AOS_ERROR_WRAP(err);
         }
     }
 
+    LOG_INF() << "ValidateService manifest.mLayers.Size();";
     if (manifest.mLayers.Size() == 0) {
         return AOS_ERROR_WRAP(Error(ErrorEnum::eInvalidArgument, "no layers found"));
     }
 
+    LOG_INF() << "ValidateDigest(path, manifest.mLayers[0].mDigest)";
     if (auto err = ValidateDigest(path, manifest.mLayers[0].mDigest); !err.IsNone()) {
         return AOS_ERROR_WRAP(err);
     }

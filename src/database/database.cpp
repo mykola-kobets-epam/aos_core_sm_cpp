@@ -39,6 +39,11 @@ Poco::Data::BLOB ToBlob(const String& str)
     return Poco::Data::BLOB {reinterpret_cast<const uint8_t*>(str.CStr()), str.Size()};
 }
 
+Poco::Data::BLOB ToBlob(const Array<uint8_t>& arr)
+{
+    return Poco::Data::BLOB {arr.Get(), arr.Size()};
+}
+
 Time ConvertTimestamp(uint64_t timestamp)
 {
     const auto seconds = timestamp / Time::cSeconds.Nanoseconds();
@@ -284,7 +289,7 @@ private:
 class DBServiceData {
 public:
     using Fields = Poco::Tuple<std::string, std::string, std::string, std::string, std::string, uint32_t, uint64_t,
-        uint32_t, uint32_t>;
+        uint32_t, uint32_t, std::string, std::string>;
 
     static sm::servicemanager::ServiceData ToAos(const Fields& dbFields)
     {
@@ -299,6 +304,11 @@ public:
         result.mTimestamp      = ConvertTimestamp(dbFields.get<Columns::eTimestamp>());
         result.mSize           = dbFields.get<Columns::eSize>();
         result.mGID            = dbFields.get<Columns::eGID>();
+        result.mURL            = dbFields.get<Columns::eURL>().c_str();
+
+        auto sha256 = dbFields.get<Columns::eSHA256>();
+
+        result.mSHA256.Assign(Array<uint8_t>(reinterpret_cast<const uint8_t*>(sha256.data()), sha256.size()));
 
         return result;
     }
@@ -314,6 +324,8 @@ private:
         eTimestamp,
         eSize,
         eGID,
+        eURL,
+        eSHA256,
     };
 };
 
@@ -657,10 +669,11 @@ Error Database::AddService(const sm::servicemanager::ServiceData& service)
     LOG_DBG() << "Add service: serviceID=" << service.mServiceID << ", version=" << service.mVersion;
 
     try {
-        *mSession << "INSERT INTO services values(?, ?, ?, ?, ?, ?, ?, ?, ?);", bind(service.mServiceID.CStr()),
+        *mSession << "INSERT INTO services values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", bind(service.mServiceID.CStr()),
             bind(service.mVersion.CStr()), bind(service.mProviderID.CStr()), bind(service.mImagePath.CStr()),
             bind(ToBlob(service.mManifestDigest)), bind(static_cast<uint32_t>(service.mState.GetValue())),
-            bind(service.mTimestamp.UnixNano()), bind(service.mSize), bind(service.mGID), now;
+            bind(service.mTimestamp.UnixNano()), bind(service.mSize), bind(service.mGID), bind(service.mURL.CStr()),
+            bind(ToBlob(service.mSHA256)), now;
     } catch (const std::exception& e) {
         return AOS_ERROR_WRAP(common::utils::ToAosError(e));
     }
@@ -704,11 +717,12 @@ Error Database::UpdateService(const sm::servicemanager::ServiceData& service)
         Poco::Data::Statement statement {*mSession};
 
         statement << "UPDATE services SET providerID = ?, imagePath = ?,"
-                     "manifestDigest = ?, state = ?, timestamp = ?, size = ?, GID = ? "
+                     "manifestDigest = ?, state = ?, timestamp = ?, size = ?, GID = ?, URL = ?, SHA256 = ? "
                      "WHERE id = ? AND version = ?;",
             bind(service.mProviderID.CStr()), bind(service.mImagePath.CStr()), bind(ToBlob(service.mManifestDigest)),
             bind(static_cast<uint32_t>(service.mState.GetValue())), bind(service.mTimestamp.UnixNano()),
-            bind(service.mSize), bind(service.mGID), bind(service.mServiceID.CStr()), bind(service.mVersion.CStr());
+            bind(service.mSize), bind(service.mGID), bind(service.mURL.CStr()), bind(ToBlob(service.mSHA256)),
+            bind(service.mServiceID.CStr()), bind(service.mVersion.CStr()), now;
 
         if (statement.execute() == 0) {
             return ErrorEnum::eNotFound;
@@ -1213,6 +1227,8 @@ void Database::CreateTables()
                  "timestamp TIMESTAMP, "
                  "size INTEGER, "
                  "GID INTEGER, "
+                 "URL TEXT, "
+                 "SHA256 BLOB, "
                  "PRIMARY KEY(id, version));",
         now;
 

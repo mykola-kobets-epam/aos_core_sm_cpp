@@ -110,6 +110,8 @@ aos::sm::launcher::InstanceData CreateInstanceData(const aos::String& id, const 
 aos::sm::servicemanager::ServiceData CreateServiceData(
     const std::string& serviceID = "service-id", const std::string& version = "0.0.1")
 {
+    const std::string sha256 = "sha256";
+
     aos::sm::servicemanager::ServiceData service;
 
     service.mServiceID      = serviceID.c_str();
@@ -121,6 +123,8 @@ aos::sm::servicemanager::ServiceData CreateServiceData(
     service.mState          = aos::sm::servicemanager::ServiceStateEnum::eActive;
     service.mSize           = 1024;
     service.mGID            = 16;
+    service.mURL            = "ftp://var/aos/services/<service-id>";
+    service.mSHA256         = aos::Array<uint8_t>(reinterpret_cast<const uint8_t*>(sha256.c_str()), sha256.size());
 
     return service;
 }
