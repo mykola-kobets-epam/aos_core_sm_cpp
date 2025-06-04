@@ -44,6 +44,11 @@ struct JournalEntry {
     std::string mSystemdUnit;
 
     /**
+     * Syslog identifier.
+     */
+    std::string mSyslogID;
+
+    /**
      * Systemd cgroup.
      */
     std::string mSystemdCGroup;

@@ -316,14 +316,14 @@ void LogProvider::AddServiceCgroupFilter(utils::JournalItf& journal, const std::
         // for supporting cgroup v1
         // format: /system.slice/system-aos@service.slice/aos-service@AOS_INSTANCE_ID.service
         std::string cgroupV1Filter
-            = std::string("_SYSTEMD_CGROUP=/system.slice/system-aos\\x2dservice.slice/aos-service@") + instanceID
+            = std::string("_SYSTEMD_CGROUP=/system.slice/system-aos\\x2dservice.slice/crun/aos-service@") + instanceID
             + ".service";
         journal.AddMatch(cgroupV1Filter);
 
         // for supporting cgroup v2
         // format: /system.slice/system-aos@service.slice/AOS_INSTANCE_ID
         std::string cgroupV2Filter
-            = std::string("_SYSTEMD_CGROUP=/system.slice/system-aos\\x2dservice.slice/") + instanceID;
+            = std::string("_SYSTEMD_CGROUP=/system.slice/system-aos\\x2dservice.slice/crun") + instanceID;
         journal.AddMatch(cgroupV2Filter);
     }
 }

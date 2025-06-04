@@ -57,11 +57,12 @@ public:
      * Starts service instance.
      *
      * @param instanceID instance ID.
+     * @param serviceVersion service version.
      * @param runtimeDir directory with runtime spec.
      * @param runParams runtime parameters.
      * @return RunStatus.
      */
-    RunStatus StartInstance(const String& instanceID, const String& runtimeDir, const RunParameters& params) override;
+    RunStatus StartInstance(const String& instanceID, const String& serviceVersion, const String& runtimeDir, const RunParameters& params) override;
 
     /**
      * Stops service instance.
@@ -89,7 +90,7 @@ private:
 
     void                           MonitorUnits();
     Array<RunStatus>               GetRunningInstances() const;
-    Error                          SetRunParameters(const std::string& unitName, const RunParameters& params);
+    Error                          SetRunParameters(const std::string& unitName, const String& serviceVersion, const RunParameters& params);
     Error                          RemoveRunParameters(const std::string& unitName);
     RetWithError<InstanceRunState> GetStartingUnitState(const std::string& unitName, Duration startInterval);
 

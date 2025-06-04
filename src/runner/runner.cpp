@@ -110,7 +110,7 @@ Runner::~Runner()
     std::ignore = Stop();
 }
 
-RunStatus Runner::StartInstance(const String& instanceID, const String& runtimeDir, const RunParameters& params)
+RunStatus Runner::StartInstance(const String& instanceID, const String& serviceVersion, const String& runtimeDir, const RunParameters& params)
 {
     (void)runtimeDir;
 
@@ -134,13 +134,13 @@ RunStatus Runner::StartInstance(const String& instanceID, const String& runtimeD
         fixedParams.mRestartInterval = cDefaultRestartInterval;
     }
 
-    LOG_DBG() << "Start service instance: instanceID=" << instanceID << ", startInterval=" << fixedParams.mStartInterval
+    LOG_DBG() << "Start service instance instanceID=" << instanceID  << ", version=" << serviceVersion <<  ", startInterval=" << fixedParams.mStartInterval
               << ", startBurst=" << fixedParams.mStartBurst << ", restartInterval=" << fixedParams.mRestartInterval;
 
     // Create systemd service file.
     const auto unitName = CreateSystemdUnitName(instanceID);
 
-    if (status.mError = SetRunParameters(unitName, fixedParams); !status.mError.IsNone()) {
+    if (status.mError = SetRunParameters(unitName, serviceVersion, fixedParams); !status.mError.IsNone()) {
         return status;
     }
 
@@ -269,16 +269,19 @@ Array<RunStatus> Runner::GetRunningInstances() const
     return Array(mRunningInstances.data(), mRunningInstances.size());
 }
 
-Error Runner::SetRunParameters(const std::string& unitName, const RunParameters& params)
+Error Runner::SetRunParameters(const std::string& unitName, const String& serviceVersion, const RunParameters& params)
 {
     const std::string parametersFormat = "[Unit]\n"
                                          "StartLimitIntervalSec=%us\n"
                                          "StartLimitBurst=%ld\n\n"
                                          "[Service]\n"
+                                         "Environment=AOS_SERVICE_VERSION=%s\n"
+                                         "LogExtraFields=AOS_SERVICE_VERSION=%s\n"
                                          "RestartSec=%us\n";
 
     std::string formattedContent
-        = Poco::format(parametersFormat, static_cast<uint32_t>(params.mStartInterval->Seconds()), *params.mStartBurst,
+        = Poco::format(parametersFormat, static_cast<uint32_t>(params.mStartInterval->Seconds()), *params.mStartBurst, std::string(serviceVersion.CStr()),
+            std::string(serviceVersion.CStr()),
             static_cast<uint32_t>(params.mRestartInterval->Seconds()));
 
     const std::string parametersDir = GetSystemdDropInsDir() + "/" + unitName + ".d";

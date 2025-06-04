@@ -71,6 +71,7 @@ private:
         const utils::JournalEntry& entry, const std::string& unit);
     std::optional<cloudprotocol::SystemAlert> GetSystemAlert(const utils::JournalEntry& entry);
     std::string                               ParseInstanceID(const std::string& unit);
+    std::string                               ParseVersion(const std::string& syslogID);
     void                                      WriteAlertMsg(const std::string& src, String& dst);
 
     config::JournalAlertsConfig mConfig               = {};

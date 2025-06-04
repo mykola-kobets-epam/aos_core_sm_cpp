@@ -154,6 +154,7 @@ JournalEntry Journal::GetEntry()
 
     Tie(entry.mSystemdUnit, ignore)   = ExtractJournalField(mJournal, "_SYSTEMD_UNIT");
     Tie(entry.mSystemdCGroup, ignore) = ExtractJournalField(mJournal, "_SYSTEMD_CGROUP");
+    Tie(entry.mSyslogID, ignore) = ExtractJournalField(mJournal, "SYSLOG_IDENTIFIER");
 
     std::string priority;
 

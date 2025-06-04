@@ -269,7 +269,8 @@ std::optional<cloudprotocol::ServiceInstanceAlert> JournalAlerts::GetServiceInst
         auto alert = cloudprotocol::ServiceInstanceAlert(entry.mRealTime);
 
         alert.mInstanceIdent  = instanceInfo.mInstanceIdent;
-        alert.mServiceVersion = instanceInfo.mVersion;
+        alert.mServiceVersion = ParseVersion(entry.mSyslogID).c_str();
+
         WriteAlertMsg(entry.mMessage, alert.mMessage);
 
         return alert;
@@ -317,6 +318,23 @@ std::string JournalAlerts::ParseInstanceID(const std::string& unit)
     }
 
     AOS_ERROR_THROW(ErrorEnum::eFailed, "bad instanceID");
+
+    return "";
+}
+
+std::string JournalAlerts::ParseVersion(const std::string& syslogID)
+{
+    Poco::RegularExpression           regex = Poco::format("^%s@([0-9a-fA-F]+)-([^\\s]+)$", std::string(cAosServicePrefix));
+    Poco::RegularExpression::MatchVec matches;
+
+    if (regex.match(syslogID, 0, matches) > 2) {
+        const auto& group = matches[2];
+        std::string version    = syslogID.substr(group.offset, group.length);
+
+        return version;
+    }
+
+    AOS_ERROR_THROW(ErrorEnum::eFailed, "can't parse version from syslogID");
 
     return "";
 }
