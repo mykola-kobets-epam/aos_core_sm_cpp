@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -u
+set -ux
 
 log() {
   echo "$(date +'%Y-%m-%d %H:%M:%S') - $1"
@@ -18,6 +18,10 @@ VERSION="${AOS_SERVICE_VERSION:-unknown}"
 
 RUNTIME="/run/aos/runtime/$INSTANCE_ID/"
 
+log "Current CGroup dir"
+cat /proc/self/cgroup
+ls -la /sys/fs/cgroup/system.slice/system-aos\\x2dservice.slice/aos-service@73483366-51dc-b074-ff5c-49194a94e82a.service/
+
 case "$COMMAND" in
   start)
     if ! "$RUNNER" delete -f "$INSTANCE_ID"; then
@@ -26,7 +30,7 @@ case "$COMMAND" in
       log "Container deleted $INSTANCE_ID"
     fi
 
-    if ! "$RUNNER" --log="journald:aos-service@aosid" run -d --pid-file "$RUNTIME/.pid" -b "$RUNTIME" "$INSTANCE_ID"; then
+    if ! "$RUNNER" run -d --pid-file "$RUNTIME/.pid" -b "$RUNTIME" "$INSTANCE_ID"; then
       log "Error: failed to run container $INSTANCE_ID version $VERSION"
       exit 1
     else

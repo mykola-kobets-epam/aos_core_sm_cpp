@@ -30,16 +30,6 @@ namespace aos::sm::monitoring {
 
 namespace {
 
-StaticString<cFilePathLen> CreateServiceName(const String& instanceID) {
-    StaticString<cFilePathLen> path;
-
-    path = "aos-service@";
-    path += instanceID;
-    path += ".service";
-
-    return path;
-}
-
 constexpr size_t cKilobyte    = 1024;
 const auto       cUnitMapping = std::map<std::string, size_t> {
     {"B", 1},
@@ -300,7 +290,7 @@ RetWithError<uint64_t> ResourceUsageProvider::GetSystemDiskUsage(const String& p
 
 RetWithError<size_t> ResourceUsageProvider::GetInstanceCPUUsage(const String& instanceID)
 {
-    const auto cpuUsageFile = fs::JoinPath(cCgroupsPath, CreateServiceName(instanceID), "crun", cCpuUsageFile);
+    const auto cpuUsageFile = fs::JoinPath(cCgroupsPath, instanceID, cCpuUsageFile);
 
     std::ifstream file(cpuUsageFile.CStr());
     if (!file.is_open()) {
@@ -327,7 +317,7 @@ RetWithError<size_t> ResourceUsageProvider::GetInstanceCPUUsage(const String& in
 
 RetWithError<size_t> ResourceUsageProvider::GetInstanceRAMUsage(const String& instanceID)
 {
-    const auto memUsageFile = fs::JoinPath(cCgroupsPath, CreateServiceName(instanceID), "crun", cMemUsageFile);
+    const auto memUsageFile = fs::JoinPath(cCgroupsPath, instanceID, cMemUsageFile);
 
     std::ifstream file(memUsageFile.CStr());
     if (!file.is_open()) {
