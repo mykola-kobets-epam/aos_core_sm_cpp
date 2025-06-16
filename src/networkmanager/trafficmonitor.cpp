@@ -84,6 +84,11 @@ Error TrafficMonitor::Start()
     return mTimer.Start(
         mUpdatePeriod,
         [this](void*) {
+            LOG_INF() << "TrafficMonitor timer start";
+
+            auto printEnd
+                = DeferRelease(reinterpret_cast<int*>(1), [](int*) { LOG_INF() << "TrafficMonitor timer end"; });
+
             if (auto err = UpdateTrafficData(); err != ErrorEnum::eNone) {
                 LOG_ERR() << "Can't update traffic data: error=" << err;
             }
